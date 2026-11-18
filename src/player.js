@@ -1,8 +1,12 @@
+import { createIcon } from './icons.js';
 import { clamp, formatTime } from './utils.js';
 
 const STYLE_ID = 'audio-practice-player-styles';
 const WRAPPER_CLASS = 'app-audio-practice-player';
 const INITIALIZED_ATTR = 'data-audio-practice-player-initialized';
+const MIN_SPEED = 0.5;
+const MAX_SPEED = 2;
+const SPEED_STEP = 0.1;
 
 /**
  * @typedef {Object} PlayerInstance
@@ -58,9 +62,22 @@ function ensureStyles() {
   padding: 0.2rem 0.5rem;
   line-height: 1.2;
   font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
 }
 .${WRAPPER_CLASS} button:hover {
   background: #f0f0f0;
+}
+.${WRAPPER_CLASS} .app-icon {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: currentColor;
+}
+.${WRAPPER_CLASS} .app-speed-btn-label {
+  font-variant-numeric: tabular-nums;
 }
 .${WRAPPER_CLASS} .app-toggle[aria-pressed="true"] {
   background: #d7ebff;
@@ -214,14 +231,14 @@ export function createPlayerForMedia(media) {
   const playPauseBtn = document.createElement('button');
   playPauseBtn.type = 'button';
   playPauseBtn.className = 'app-play-pause';
-  playPauseBtn.textContent = '▶';
+  playPauseBtn.append(createIcon('play'));
   playPauseBtn.setAttribute('aria-label', 'Play');
   playPauseBtn.title = 'Play';
 
   const repeatBtn = document.createElement('button');
   repeatBtn.type = 'button';
   repeatBtn.className = 'app-toggle';
-  repeatBtn.textContent = '🔃';
+  repeatBtn.append(createIcon('repeat'));
   repeatBtn.setAttribute('aria-pressed', 'false');
   repeatBtn.setAttribute('aria-label', 'Repeat: off');
   repeatBtn.title = 'Repeat: off';
@@ -239,6 +256,10 @@ export function createPlayerForMedia(media) {
   speedBtn.setAttribute('aria-expanded', 'false');
   speedBtn.title = 'Playback speed';
 
+  const speedBtnLabel = document.createElement('span');
+  speedBtnLabel.className = 'app-speed-btn-label';
+  speedBtn.append(createIcon('speed'), speedBtnLabel);
+
   const speedPopover = document.createElement('div');
   speedPopover.className = 'app-popover app-speed-popover';
   speedPopover.hidden = true;
@@ -249,9 +270,9 @@ export function createPlayerForMedia(media) {
   const speedSlider = document.createElement('input');
   speedSlider.type = 'range';
   speedSlider.className = 'app-vertical-slider app-speed-slider';
-  speedSlider.min = '0.1';
-  speedSlider.max = '2';
-  speedSlider.step = '0.1';
+  speedSlider.min = String(MIN_SPEED);
+  speedSlider.max = String(MAX_SPEED);
+  speedSlider.step = String(SPEED_STEP);
   speedSlider.value = '1';
   speedSlider.setAttribute('orient', 'vertical');
   speedSlider.setAttribute('aria-label', 'Playback speed');
@@ -266,7 +287,7 @@ export function createPlayerForMedia(media) {
   const volumeBtn = document.createElement('button');
   volumeBtn.type = 'button';
   volumeBtn.className = 'app-volume-btn';
-  volumeBtn.textContent = '🔊';
+  volumeBtn.append(createIcon('volume'));
   volumeBtn.setAttribute('aria-label', 'Volume');
   volumeBtn.setAttribute('aria-expanded', 'false');
   volumeBtn.title = 'Volume';
@@ -357,9 +378,16 @@ export function createPlayerForMedia(media) {
     const text = `${percent}%`;
     speedSlider.value = String(state.rate);
     speedValue.textContent = text;
-    speedBtn.textContent = `⏱ ${text}`;
+    speedBtnLabel.textContent = text;
     speedBtn.setAttribute('aria-label', `Playback speed: ${text}`);
     speedBtn.title = `Playback speed: ${text}`;
+  }
+
+  /** @param {'play'|'pause'} name @returns {void} */
+  function setPlayPauseIcon(name) {
+    const icon = playPauseBtn.querySelector('svg');
+    if (icon?.getAttribute('data-icon') === name) return;
+    playPauseBtn.replaceChildren(createIcon(name));
   }
 
   /** @returns {void} */
@@ -415,12 +443,11 @@ export function createPlayerForMedia(media) {
     timeEnd.textContent = `(${formatTime(state.b)}) ${formatTime(d)}`;
 
     const paused = media.paused;
-    playPauseBtn.textContent = paused ? '▶' : '⏸';
+    setPlayPauseIcon(paused ? 'play' : 'pause');
     const playPauseLabel = paused ? 'Play' : 'Pause';
     playPauseBtn.setAttribute('aria-label', playPauseLabel);
     playPauseBtn.title = playPauseLabel;
 
-    repeatBtn.textContent = '🔃';
     const repeatLabel = state.repeat ? 'Repeat: on' : 'Repeat: off';
     repeatBtn.setAttribute('aria-pressed', state.repeat ? 'true' : 'false');
     repeatBtn.setAttribute('aria-label', repeatLabel);
@@ -581,7 +608,7 @@ export function createPlayerForMedia(media) {
   function onSpeedSliderInput() {
     const value = Number(speedSlider.value);
     if (!Number.isFinite(value)) return;
-    state.rate = Math.round(clamp(value, 0.1, 2.0) * 10) / 10;
+    state.rate = Math.round(clamp(value, MIN_SPEED, MAX_SPEED) * 10) / 10;
     media.playbackRate = state.rate;
     syncSpeedUI();
   }

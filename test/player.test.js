@@ -46,19 +46,21 @@ describe('audio-practice-player', () => {
     if (!root) throw new Error('no root');
 
     const playPause = /** @type {HTMLButtonElement | null} */ (root.querySelector('.app-play-pause'));
-    expect(playPause?.textContent).to.equal('▶');
+    expect(playPause?.querySelector('svg')?.getAttribute('data-icon')).to.equal('play');
+    expect(playPause?.querySelector('svg path')?.getAttribute('fill')).to.equal('currentColor');
     expect(playPause?.getAttribute('aria-label')).to.equal('Play');
 
     const repeat = /** @type {HTMLButtonElement | null} */ (root.querySelector('.app-toggle'));
-    expect(repeat?.textContent).to.equal('🔃');
+    expect(repeat?.querySelector('svg')?.getAttribute('data-icon')).to.equal('repeat');
     expect(repeat?.getAttribute('aria-pressed')).to.equal('false');
 
     expect(root.querySelector('input.app-progress')).to.exist;
 
     const speedBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.app-speed-btn'));
     const volumeBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.app-volume-btn'));
-    expect(speedBtn?.textContent).to.equal('⏱ 100%');
-    expect(volumeBtn?.textContent).to.equal('🔊');
+    expect(speedBtn?.querySelector('svg')?.getAttribute('data-icon')).to.equal('speed');
+    expect(speedBtn?.querySelector('.app-speed-btn-label')?.textContent).to.equal('100%');
+    expect(volumeBtn?.querySelector('svg')?.getAttribute('data-icon')).to.equal('volume');
 
     const speedPopover = /** @type {HTMLElement | null} */ (root.querySelector('.app-speed-popover'));
     const volumePopover = /** @type {HTMLElement | null} */ (root.querySelector('.app-volume-popover'));
@@ -66,7 +68,7 @@ describe('audio-practice-player', () => {
     expect(volumePopover?.hidden).to.equal(true);
 
     const speedSlider = /** @type {HTMLInputElement | null} */ (root.querySelector('.app-speed-slider'));
-    expect(speedSlider?.min).to.equal('0.1');
+    expect(speedSlider?.min).to.equal('0.5');
     expect(speedSlider?.max).to.equal('2');
     expect(speedSlider?.step).to.equal('0.1');
 
@@ -92,14 +94,14 @@ describe('audio-practice-player', () => {
     const playPause = /** @type {HTMLButtonElement | null} */ (root.querySelector('.app-play-pause'));
     if (!playPause) throw new Error('play/pause missing');
 
-    expect(playPause.textContent).to.equal('▶');
+    expect(playPause.querySelector('svg')?.getAttribute('data-icon')).to.equal('play');
     paused = false;
     audio.dispatchEvent(new Event('play'));
-    expect(playPause.textContent).to.equal('⏸');
+    expect(playPause.querySelector('svg')?.getAttribute('data-icon')).to.equal('pause');
     expect(playPause.getAttribute('aria-label')).to.equal('Pause');
     paused = true;
     audio.dispatchEvent(new Event('pause'));
-    expect(playPause.textContent).to.equal('▶');
+    expect(playPause.querySelector('svg')?.getAttribute('data-icon')).to.equal('play');
     expect(playPause.getAttribute('aria-label')).to.equal('Play');
   });
 
@@ -112,25 +114,27 @@ describe('audio-practice-player', () => {
     if (!root) throw new Error('no root');
 
     const speedBtn = /** @type {HTMLButtonElement | null} */ (root.querySelector('.app-speed-btn'));
+    const speedBtnLabel = /** @type {HTMLElement | null} */ (root.querySelector('.app-speed-btn-label'));
     const speedSlider = /** @type {HTMLInputElement | null} */ (root.querySelector('.app-speed-slider'));
     const speedValue = /** @type {HTMLElement | null} */ (root.querySelector('.app-speed-value'));
-    if (!speedBtn || !speedSlider || !speedValue) throw new Error('speed controls missing');
+    if (!speedBtn || !speedBtnLabel || !speedSlider || !speedValue) throw new Error('speed controls missing');
 
     speedSlider.value = '1.1';
     speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
     expect(audio.playbackRate).to.be.closeTo(1.1, 0.001);
-    expect(speedBtn.textContent).to.equal('⏱ 110%');
+    expect(speedBtnLabel.textContent).to.equal('110%');
     expect(speedValue.textContent).to.equal('110%');
 
     speedSlider.value = '2';
     speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
     expect(audio.playbackRate).to.be.closeTo(2.0, 0.001);
-    expect(speedBtn.textContent).to.equal('⏱ 200%');
+    expect(speedBtnLabel.textContent).to.equal('200%');
 
-    speedSlider.value = '0.1';
+    speedSlider.value = '0.5';
     speedSlider.dispatchEvent(new Event('input', { bubbles: true }));
-    expect(audio.playbackRate).to.be.closeTo(0.1, 0.001);
-    expect(speedBtn.textContent).to.equal('⏱ 10%');
+    expect(audio.playbackRate).to.be.closeTo(0.5, 0.001);
+    expect(speedBtnLabel.textContent).to.equal('50%');
+    expect(speedBtn.querySelector('svg')?.getAttribute('data-icon')).to.equal('speed');
   });
 
   it('toggles speed and volume popovers (one at a time)', () => {
@@ -218,7 +222,7 @@ describe('audio-practice-player', () => {
     expect(repeat.getAttribute('aria-pressed')).to.equal('false');
     expect(repeat.getAttribute('aria-label')).to.equal('Repeat: off');
     repeat.click();
-    expect(repeat.textContent).to.equal('🔃');
+    expect(repeat.querySelector('svg')?.getAttribute('data-icon')).to.equal('repeat');
     expect(repeat.getAttribute('aria-pressed')).to.equal('true');
     expect(repeat.getAttribute('aria-label')).to.equal('Repeat: on');
   });

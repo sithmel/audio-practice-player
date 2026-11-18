@@ -6,10 +6,10 @@ A browser-oriented audio player component designed for music practice. It enhanc
 
 - Automatically finds `<audio>` and `<video>` elements with MP3 sources (including elements added later via `MutationObserver`)
 - Replaces native browser controls with custom practice controls:
-  - **Play/Pause** toggle (`▶` / `⏸`) and **Repeat** toggle (`🔃`) on the left
-  - **Speed** and **Volume** controls on the right: buttons open vertical sliders in popovers
-    - **Speed:** `⏱` with a clear selected-speed display, range `10%`–`200%` in strict `10%` increments
-    - **Volume:** `🔊` slider control (`0`–`1`, no mute/unmute toggle)
+  - **Play/Pause** and **Repeat** controls with monochrome SVG icons on the left
+  - **Speed** and **Volume** controls on the right: buttons with monochrome SVG icons open vertical sliders in popovers
+    - **Speed:** timer icon with a clear selected-speed display, range `50%`–`200%` in strict `10%` increments
+    - **Volume:** speaker icon with a slider control (`0`–`1`, no mute/unmute toggle)
   - **Full-track progress bar** (scrubbable across the entire duration) with draggable A/B range markers (labels shown in parentheses, no A/B text)
   - **Time display:** current time on the left, `(ending marker)` and total time on the right
 - Playback is constrained to the selected A/B range:
