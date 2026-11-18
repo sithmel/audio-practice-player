@@ -1,0 +1,26 @@
+{
+  "name": "audio-practice-player",
+  "version": "0.1.0",
+  "description": "A simple audio player designed with music practice in mind",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "npm run test && rollup -c",
+    "test": "web-test-runner",
+    "typecheck": "tsc --noEmit",
+    "demo": "http-server . -c-1 -p 8080"
+  },
+  "devDependencies": {
+    "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@web/test-runner": "^0.19.0",
+    "@web/test-runner-playwright": "^0.11.0",
+    "http-server": "^14.1.1",
+    "rollup": "^4.24.0",
+    "typescript": "^5.6.3"
+  }
+}

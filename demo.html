@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>audio-practice-player demo</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.4;
+      }
+      section {
+        margin: 1.5rem 0;
+      }
+      code {
+        background: #f3f3f3;
+        padding: 0.1rem 0.3rem;
+        border-radius: 4px;
+      }
+      .note {
+        background: #fff8e6;
+        border: 1px solid #ecd28a;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>audio-practice-player demo</h1>
+    <p class="note">
+      Add an MP3 file named <code>sample.mp3</code> to this project folder (or update the
+      <code>src</code> paths below) and reload. The player enhances MP3
+      <code>&lt;audio&gt;</code> and <code>&lt;video&gt;</code> elements by replacing native controls
+      with practice controls (play/pause, full-track scrubber, A/B range markers with mm:ss,
+      speed 10%–200% in ±10% steps, and repeat).
+    </p>
+
+    <section>
+      <h2>Audio element (MP3)</h2>
+      <audio src="./sample.mp3"></audio>
+    </section>
+
+    <section>
+      <h2>Video element with MP3 source</h2>
+      <video>
+        <source src="./sample.mp3" type="audio/mpeg" />
+      </video>
+    </section>
+
+    <section>
+      <h2>Dynamic element (MutationObserver)</h2>
+      <p>Click to add another MP3 audio element after load:</p>
+      <button id="add-audio" type="button">Add MP3 audio</button>
+      <div id="dynamic-target"></div>
+    </section>
+
+    <script type="module" src="./src/index.js"></script>
+    <script type="module">
+      const button = document.getElementById('add-audio');
+      const target = document.getElementById('dynamic-target');
+      button?.addEventListener('click', () => {
+        const audio = document.createElement('audio');
+        audio.src = './sample.mp3';
+        target?.appendChild(audio);
+      });
+    </script>
+  </body>
+</html>
