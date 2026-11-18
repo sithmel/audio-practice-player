@@ -9,14 +9,16 @@
     "src"
   ],
   "scripts": {
-    "build": "npm run test && rollup -c",
+    "bundle": "rollup -c",
+    "build": "npm run test && npm run bundle",
     "test": "web-test-runner",
     "typecheck": "tsc --noEmit",
-    "demo": "http-server . -c-1 -p 8080"
+    "demo": "npm run bundle && http-server docs -c-1 -p 8080"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
+    "@types/mocha": "^10.0.10",
     "@web/test-runner": "^0.19.0",
     "@web/test-runner-playwright": "^0.11.0",
     "http-server": "^14.1.1",

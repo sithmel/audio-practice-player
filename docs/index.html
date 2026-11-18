@@ -31,11 +31,12 @@
   <body>
     <h1>audio-practice-player demo</h1>
     <p class="note">
-      Add an MP3 file named <code>sample.mp3</code> to this project folder (or update the
-      <code>src</code> paths below) and reload. The player enhances MP3
+      This demo uses <code>sample.mp3</code> from the same <code>docs/</code> folder. Replace it or
+      update the media paths below to try a different MP3. The player enhances MP3
       <code>&lt;audio&gt;</code> and <code>&lt;video&gt;</code> elements by replacing native controls
-      with practice controls (play/pause, full-track scrubber, A/B range markers with mm:ss,
-      speed 10%–200% in ±10% steps, and repeat).
+      with practice controls (play/pause ▶/⏸ and repeat 🔃 on the left; speed ⏱ and volume 🔊 popover sliders on the right;
+      full-track scrubber with A/B range markers labeled in parentheses; time shown as current on the left and
+      (ending marker) plus total on the right).
     </p>
 
     <section>
@@ -57,7 +58,7 @@
       <div id="dynamic-target"></div>
     </section>
 
-    <script type="module" src="./src/index.js"></script>
+    <script type="module" src="./audio-practice-player.js"></script>
     <script type="module">
       const button = document.getElementById('add-audio');
       const target = document.getElementById('dynamic-target');

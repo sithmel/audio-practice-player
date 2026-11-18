@@ -29,19 +29,79 @@ function ensureStyles() {
 .${WRAPPER_CLASS} .app-controls {
   display: grid;
   gap: 0.5rem;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f8f8f8;
+  padding: 0.6rem;
+  border: 1px solid #d3d3d3;
+  border-radius: 8px;
+  background: #f7f7f8;
 }
-.${WRAPPER_CLASS} .app-row {
+.${WRAPPER_CLASS} .app-transport {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+.${WRAPPER_CLASS} .app-transport-left,
+.${WRAPPER_CLASS} .app-transport-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.${WRAPPER_CLASS} .app-transport-right {
+  margin-left: auto;
+}
 .${WRAPPER_CLASS} button {
   cursor: pointer;
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: #fff;
+  padding: 0.2rem 0.5rem;
+  line-height: 1.2;
+  font: inherit;
+}
+.${WRAPPER_CLASS} button:hover {
+  background: #f0f0f0;
+}
+.${WRAPPER_CLASS} .app-toggle[aria-pressed="true"] {
+  background: #d7ebff;
+  border-color: #2b78c5;
+  box-shadow: inset 0 0 0 1px #2b78c5;
+  font-weight: 600;
+}
+.${WRAPPER_CLASS} .app-popover-control {
+  position: relative;
+}
+.${WRAPPER_CLASS} .app-popover {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.4rem;
+  background: #fff;
+  border: 1px solid #c8c8c8;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+.${WRAPPER_CLASS} .app-popover[hidden] {
+  display: none;
+}
+.${WRAPPER_CLASS} .app-popover-value {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.${WRAPPER_CLASS} .app-vertical-slider {
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  width: 1.5rem;
+  height: 7rem;
+  padding: 0;
+  margin: 0;
 }
 .${WRAPPER_CLASS} .app-timeline {
   position: relative;
@@ -104,12 +164,15 @@ function ensureStyles() {
   padding: 0 0.2rem;
   pointer-events: none;
 }
-.${WRAPPER_CLASS} .app-time {
-  min-width: 7.5rem;
+.${WRAPPER_CLASS} .app-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
-.${WRAPPER_CLASS} .app-toggle[aria-pressed="true"] {
-  font-weight: 600;
+.${WRAPPER_CLASS} .app-time-end {
+  text-align: right;
 }
 `;
   document.head.appendChild(style);
@@ -140,34 +203,92 @@ export function createPlayerForMedia(media) {
   controls.className = 'app-controls';
 
   const transport = document.createElement('div');
-  transport.className = 'app-row';
+  transport.className = 'app-transport';
 
-  const playBtn = document.createElement('button');
-  playBtn.type = 'button';
-  playBtn.textContent = 'Play';
+  const transportLeft = document.createElement('div');
+  transportLeft.className = 'app-transport-left';
 
-  const pauseBtn = document.createElement('button');
-  pauseBtn.type = 'button';
-  pauseBtn.textContent = 'Pause';
+  const transportRight = document.createElement('div');
+  transportRight.className = 'app-transport-right';
+
+  const playPauseBtn = document.createElement('button');
+  playPauseBtn.type = 'button';
+  playPauseBtn.className = 'app-play-pause';
+  playPauseBtn.textContent = '▶';
+  playPauseBtn.setAttribute('aria-label', 'Play');
+  playPauseBtn.title = 'Play';
 
   const repeatBtn = document.createElement('button');
   repeatBtn.type = 'button';
   repeatBtn.className = 'app-toggle';
-  repeatBtn.textContent = 'Repeat: Off';
+  repeatBtn.textContent = '🔃';
   repeatBtn.setAttribute('aria-pressed', 'false');
+  repeatBtn.setAttribute('aria-label', 'Repeat: off');
+  repeatBtn.title = 'Repeat: off';
 
-  const speedDown = document.createElement('button');
-  speedDown.type = 'button';
-  speedDown.textContent = '−10%';
+  transportLeft.append(playPauseBtn, repeatBtn);
 
-  const speedUp = document.createElement('button');
-  speedUp.type = 'button';
-  speedUp.textContent = '+10%';
+  // Speed control (popover with vertical slider)
+  const speedControl = document.createElement('div');
+  speedControl.className = 'app-popover-control app-speed-control';
 
-  const speedLabel = document.createElement('span');
-  speedLabel.className = 'app-speed';
+  const speedBtn = document.createElement('button');
+  speedBtn.type = 'button';
+  speedBtn.className = 'app-speed-btn';
+  speedBtn.setAttribute('aria-label', 'Playback speed');
+  speedBtn.setAttribute('aria-expanded', 'false');
+  speedBtn.title = 'Playback speed';
 
-  transport.append(playBtn, pauseBtn, repeatBtn, speedDown, speedUp, speedLabel);
+  const speedPopover = document.createElement('div');
+  speedPopover.className = 'app-popover app-speed-popover';
+  speedPopover.hidden = true;
+
+  const speedValue = document.createElement('div');
+  speedValue.className = 'app-popover-value app-speed-value';
+
+  const speedSlider = document.createElement('input');
+  speedSlider.type = 'range';
+  speedSlider.className = 'app-vertical-slider app-speed-slider';
+  speedSlider.min = '0.1';
+  speedSlider.max = '2';
+  speedSlider.step = '0.1';
+  speedSlider.value = '1';
+  speedSlider.setAttribute('orient', 'vertical');
+  speedSlider.setAttribute('aria-label', 'Playback speed');
+
+  speedPopover.append(speedValue, speedSlider);
+  speedControl.append(speedBtn, speedPopover);
+
+  // Volume control (popover with vertical slider, no mute toggle)
+  const volumeControl = document.createElement('div');
+  volumeControl.className = 'app-popover-control app-volume-control';
+
+  const volumeBtn = document.createElement('button');
+  volumeBtn.type = 'button';
+  volumeBtn.className = 'app-volume-btn';
+  volumeBtn.textContent = '🔊';
+  volumeBtn.setAttribute('aria-label', 'Volume');
+  volumeBtn.setAttribute('aria-expanded', 'false');
+  volumeBtn.title = 'Volume';
+
+  const volumePopover = document.createElement('div');
+  volumePopover.className = 'app-popover app-volume-popover';
+  volumePopover.hidden = true;
+
+  const volumeSlider = document.createElement('input');
+  volumeSlider.type = 'range';
+  volumeSlider.className = 'app-vertical-slider app-volume-slider';
+  volumeSlider.min = '0';
+  volumeSlider.max = '1';
+  volumeSlider.step = '0.01';
+  volumeSlider.setAttribute('orient', 'vertical');
+  volumeSlider.setAttribute('aria-label', 'Volume');
+
+  volumePopover.append(volumeSlider);
+  volumeControl.append(volumeBtn, volumePopover);
+
+  transportRight.append(speedControl, volumeControl);
+  transport.append(transportLeft, transportRight);
 
   const timeline = document.createElement('div');
   timeline.className = 'app-timeline';
@@ -203,10 +324,15 @@ export function createPlayerForMedia(media) {
   timeline.append(progress, rangeHighlight, markerA.marker, markerB.marker);
 
   const timeRow = document.createElement('div');
-  timeRow.className = 'app-row';
-  const timeLabel = document.createElement('span');
-  timeLabel.className = 'app-time';
-  timeRow.appendChild(timeLabel);
+  timeRow.className = 'app-time-row';
+
+  const timeCurrent = document.createElement('span');
+  timeCurrent.className = 'app-time-current';
+
+  const timeEnd = document.createElement('span');
+  timeEnd.className = 'app-time-end';
+
+  timeRow.append(timeCurrent, timeEnd);
 
   controls.append(transport, timeline, timeRow);
   root.appendChild(controls);
@@ -226,8 +352,20 @@ export function createPlayerForMedia(media) {
   };
 
   /** @returns {void} */
-  function updateSpeedLabel() {
-    speedLabel.textContent = `${Math.round(state.rate * 100)}%`;
+  function syncSpeedUI() {
+    const percent = Math.round(state.rate * 100);
+    const text = `${percent}%`;
+    speedSlider.value = String(state.rate);
+    speedValue.textContent = text;
+    speedBtn.textContent = `⏱ ${text}`;
+    speedBtn.setAttribute('aria-label', `Playback speed: ${text}`);
+    speedBtn.title = `Playback speed: ${text}`;
+  }
+
+  /** @returns {void} */
+  function syncVolumeUI() {
+    const v = clamp(Number.isFinite(media.volume) ? media.volume : 1, 0, 1);
+    volumeSlider.value = String(v);
   }
 
   /** @returns {void} */
@@ -257,8 +395,8 @@ export function createPlayerForMedia(media) {
     const bPct = d > 0 ? (state.b / d) * 100 : 0;
     markerA.marker.style.left = `${aPct}%`;
     markerB.marker.style.left = `${bPct}%`;
-    markerA.label.textContent = formatTime(state.a);
-    markerB.label.textContent = formatTime(state.b);
+    markerA.label.textContent = `(${formatTime(state.a)})`;
+    markerB.label.textContent = `(${formatTime(state.b)})`;
     markerA.marker.setAttribute('aria-valuemin', '0');
     markerA.marker.setAttribute('aria-valuemax', String(d));
     markerA.marker.setAttribute('aria-valuenow', String(state.a));
@@ -273,10 +411,23 @@ export function createPlayerForMedia(media) {
     rangeHighlight.style.left = `${left}%`;
     rangeHighlight.style.width = `${width}%`;
 
-    timeLabel.textContent = `${formatTime(current)} / ${formatTime(d)}  (A ${formatTime(state.a)} – B ${formatTime(state.b)})`;
-    updateSpeedLabel();
-    repeatBtn.textContent = `Repeat: ${state.repeat ? 'On' : 'Off'}`;
+    timeCurrent.textContent = formatTime(current);
+    timeEnd.textContent = `(${formatTime(state.b)}) ${formatTime(d)}`;
+
+    const paused = media.paused;
+    playPauseBtn.textContent = paused ? '▶' : '⏸';
+    const playPauseLabel = paused ? 'Play' : 'Pause';
+    playPauseBtn.setAttribute('aria-label', playPauseLabel);
+    playPauseBtn.title = playPauseLabel;
+
+    repeatBtn.textContent = '🔃';
+    const repeatLabel = state.repeat ? 'Repeat: on' : 'Repeat: off';
     repeatBtn.setAttribute('aria-pressed', state.repeat ? 'true' : 'false');
+    repeatBtn.setAttribute('aria-label', repeatLabel);
+    repeatBtn.title = repeatLabel;
+
+    syncSpeedUI();
+    syncVolumeUI();
   }
 
   /** @param {number} time */
@@ -351,6 +502,16 @@ export function createPlayerForMedia(media) {
     if (marker.hasPointerCapture(e.pointerId)) marker.releasePointerCapture(e.pointerId);
   }
 
+  /** @param {'speed'|'volume'|null} which */
+  function setPopoverOpen(which) {
+    const speedOpen = which === 'speed';
+    const volumeOpen = which === 'volume';
+    speedPopover.hidden = !speedOpen;
+    volumePopover.hidden = !volumeOpen;
+    speedBtn.setAttribute('aria-expanded', speedOpen ? 'true' : 'false');
+    volumeBtn.setAttribute('aria-expanded', volumeOpen ? 'true' : 'false');
+  }
+
   function onLoadedMetadata() {
     const wasUninitialized = state.duration === 0;
     syncProgressMax();
@@ -387,15 +548,15 @@ export function createPlayerForMedia(media) {
     seek(value);
   }
 
-  function onPlayClick() {
+  function onPlayPauseClick() {
     if (state.duration <= 0) return;
-    enforceRangeOnPlay();
-    const p = media.play();
-    if (p && typeof p.catch === 'function') p.catch(() => {});
-  }
-
-  function onPauseClick() {
-    media.pause();
+    if (media.paused) {
+      enforceRangeOnPlay();
+      const p = media.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } else {
+      media.pause();
+    }
   }
 
   function onRepeatClick() {
@@ -403,29 +564,83 @@ export function createPlayerForMedia(media) {
     updateUI();
   }
 
-  /** @param {number} delta */
-  function changeRate(delta) {
-    state.rate = Math.round(clamp(state.rate + delta, 0.1, 2.0) * 10) / 10;
-    media.playbackRate = state.rate;
-    updateUI();
+  /** @param {MouseEvent} e */
+  function onSpeedBtnClick(e) {
+    e.stopPropagation();
+    const open = !speedPopover.hidden;
+    setPopoverOpen(open ? null : 'speed');
   }
 
-  playBtn.addEventListener('click', onPlayClick);
-  pauseBtn.addEventListener('click', onPauseClick);
+  /** @param {MouseEvent} e */
+  function onVolumeBtnClick(e) {
+    e.stopPropagation();
+    const open = !volumePopover.hidden;
+    setPopoverOpen(open ? null : 'volume');
+  }
+
+  function onSpeedSliderInput() {
+    const value = Number(speedSlider.value);
+    if (!Number.isFinite(value)) return;
+    state.rate = Math.round(clamp(value, 0.1, 2.0) * 10) / 10;
+    media.playbackRate = state.rate;
+    syncSpeedUI();
+  }
+
+  function onVolumeSliderInput() {
+    const value = Number(volumeSlider.value);
+    if (!Number.isFinite(value)) return;
+    media.volume = clamp(value, 0, 1);
+  }
+
+  function onVolumeChange() {
+    syncVolumeUI();
+  }
+
+  /** @param {MouseEvent} e */
+  function onDocumentClick(e) {
+    const target = e.target;
+    if (!(target instanceof Node)) {
+      setPopoverOpen(null);
+      return;
+    }
+    if (!speedControl.contains(target) && !volumeControl.contains(target)) {
+      setPopoverOpen(null);
+    } else if (!speedControl.contains(target)) {
+      speedPopover.hidden = true;
+      speedBtn.setAttribute('aria-expanded', 'false');
+    } else if (!volumeControl.contains(target)) {
+      volumePopover.hidden = true;
+      volumeBtn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  /** @param {KeyboardEvent} e */
+  function onDocumentKeydown(e) {
+    if (e.key === 'Escape') {
+      setPopoverOpen(null);
+    }
+  }
+
+  playPauseBtn.addEventListener('click', onPlayPauseClick);
   repeatBtn.addEventListener('click', onRepeatClick);
-  speedDown.addEventListener('click', () => changeRate(-0.1));
-  speedUp.addEventListener('click', () => changeRate(0.1));
+  speedBtn.addEventListener('click', onSpeedBtnClick);
+  volumeBtn.addEventListener('click', onVolumeBtnClick);
+  speedSlider.addEventListener('input', onSpeedSliderInput);
+  volumeSlider.addEventListener('input', onVolumeSliderInput);
   progress.addEventListener('input', onProgressInput);
   markerA.marker.addEventListener('pointerdown', (e) => onMarkerPointerDown(e, 'a'));
   markerB.marker.addEventListener('pointerdown', (e) => onMarkerPointerDown(e, 'b'));
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
+  document.addEventListener('click', onDocumentClick);
+  document.addEventListener('keydown', onDocumentKeydown);
   media.addEventListener('loadedmetadata', onLoadedMetadata);
   media.addEventListener('durationchange', onLoadedMetadata);
   media.addEventListener('timeupdate', onTimeUpdate);
   media.addEventListener('play', onPlay);
   media.addEventListener('pause', updateUI);
   media.addEventListener('ended', handleRangeEnd);
+  media.addEventListener('volumechange', onVolumeChange);
 
   // initialize if metadata already available
   if (media.readyState >= 1 && Number.isFinite(media.duration)) {
@@ -434,21 +649,28 @@ export function createPlayerForMedia(media) {
     syncProgressMax();
   }
   media.playbackRate = state.rate;
+  syncVolumeUI();
   updateUI();
 
   function destroy() {
-    playBtn.removeEventListener('click', onPlayClick);
-    pauseBtn.removeEventListener('click', onPauseClick);
+    playPauseBtn.removeEventListener('click', onPlayPauseClick);
     repeatBtn.removeEventListener('click', onRepeatClick);
+    speedBtn.removeEventListener('click', onSpeedBtnClick);
+    volumeBtn.removeEventListener('click', onVolumeBtnClick);
+    speedSlider.removeEventListener('input', onSpeedSliderInput);
+    volumeSlider.removeEventListener('input', onVolumeSliderInput);
     progress.removeEventListener('input', onProgressInput);
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('click', onDocumentClick);
+    document.removeEventListener('keydown', onDocumentKeydown);
     media.removeEventListener('loadedmetadata', onLoadedMetadata);
     media.removeEventListener('durationchange', onLoadedMetadata);
     media.removeEventListener('timeupdate', onTimeUpdate);
     media.removeEventListener('play', onPlay);
     media.removeEventListener('pause', updateUI);
     media.removeEventListener('ended', handleRangeEnd);
+    media.removeEventListener('volumechange', onVolumeChange);
   }
 
   return { media, root, destroy };

@@ -15,5 +15,10 @@ export default {
       name: 'AudioPracticePlayer',
       sourcemap: true,
     },
+    {
+      file: 'docs/audio-practice-player.js',
+      format: 'esm',
+      sourcemap: true,
+    },
   ],
 };

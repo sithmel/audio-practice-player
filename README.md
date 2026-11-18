@@ -5,12 +5,13 @@ A browser-oriented audio player component designed for music practice. It enhanc
 ## Features
 
 - Automatically finds `<audio>` and `<video>` elements with MP3 sources (including elements added later via `MutationObserver`)
-- Replaces native browser controls with custom controls:
-  - **Play** and **Pause**
-  - **Full-track progress bar** (scrubbable across the entire duration)
-  - **Playback speed** control: default `100%`, range `10%`–`200%`, adjustable in `±10%` steps
-  - **A/B range markers** (two movable cursors) defaulting to track start/end, each labeled with `mm:ss`
-  - **Repeat** toggle
+- Replaces native browser controls with custom practice controls:
+  - **Play/Pause** toggle (`▶` / `⏸`) and **Repeat** toggle (`🔃`) on the left
+  - **Speed** and **Volume** controls on the right: buttons open vertical sliders in popovers
+    - **Speed:** `⏱` with a clear selected-speed display, range `10%`–`200%` in strict `10%` increments
+    - **Volume:** `🔊` slider control (`0`–`1`, no mute/unmute toggle)
+  - **Full-track progress bar** (scrubbable across the entire duration) with draggable A/B range markers (labels shown in parentheses, no A/B text)
+  - **Time display:** current time on the left, `(ending marker)` and total time on the right
 - Playback is constrained to the selected A/B range:
   - Play operates within the range
   - When playback reaches the end marker, it **stops** (Repeat off) or **loops back to the start marker** (Repeat on)
@@ -46,14 +47,14 @@ initMediaElement(document.querySelector('audio'));
 
 ## Demo
 
-A demo page is included as [`demo.html`](./demo.html).
+A demo page is included in [`docs/`](./docs/) (`index.html`, `sample.mp3`, and the built `audio-practice-player.js` bundle).
 
 1. Install dependencies: `npm install`
-2. Add an MP3 file named `sample.mp3` to the project root (or update the media `src` paths in `demo.html`)
-3. Start the local server: `npm run demo` (uses [`http-server`](https://www.npmjs.com/package/http-server))
-4. Open `http://localhost:8080/demo.html` in your browser
+2. Ensure an MP3 file named `sample.mp3` is present in `docs/` (or update the media paths in `docs/index.html`)
+3. Start the demo: `npm run demo` (builds the bundle with Rollup, then serves `docs/` via [`http-server`](https://www.npmjs.com/package/http-server))
+4. Open `http://localhost:8080/` in your browser
 
-The demo loads `src/index.js` directly (no build required) and includes examples for `<audio>`, `<video>` with an MP3 source, and dynamically added elements.
+To rebuild only the bundle (including `docs/audio-practice-player.js`) without starting the server, run `npm run bundle`. The demo does not load from `src/`; it uses the bundled output in `docs/`.
 
 ## Development
 
@@ -65,10 +66,13 @@ The demo loads `src/index.js` directly (no build required) and includes examples
 
 ```bash
 npm install
+npx playwright install chromium
 npm run typecheck
 npm test
 npm run build
 ```
+
+> Install the Playwright Chromium browser once before running tests (`npx playwright install chromium`). This is required by `@web/test-runner-playwright`.
 
 > `npm run build` runs tests automatically before bundling.
 
